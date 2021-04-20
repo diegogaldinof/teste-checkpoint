@@ -10,7 +10,7 @@
 # There is a checkpoint server.
 
 # CRAN's (R packages repository) snapshots are created every day
-# and stored on the checkpoint server.
+# and stored in the checkpoint server.
 
 # Checkpoint package uses these snapshots to download
 # packages from a specific date ("2021-04-20").
