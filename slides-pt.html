@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Pacote checkpoint</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Diego Galdino França" />
+    <meta name="date" content="2021-04-16" />
+    <script src="slides-pt_files/header-attrs/header-attrs.js"></script>
+    <link href="slides-pt_files/tile-view/tile-view.css" rel="stylesheet" />
+    <script src="slides-pt_files/tile-view/tile-view.js"></script>
+    <script src="slides-pt_files/clipboard/clipboard.min.js"></script>
+    <link href="slides-pt_files/xaringanExtra-clipboard/xaringanExtra-clipboard.css" rel="stylesheet" />
+    <script src="slides-pt_files/xaringanExtra-clipboard/xaringanExtra-clipboard.js"></script>
+    <script>window.xaringanExtraClipboard(null, {"button":"Copy Code","success":"Copied!","error":"Press Ctrl+C to Copy"})</script>
+    <link href="slides-pt_files/xaringanExtra-extra-styles/xaringanExtra-extra-styles.css" rel="stylesheet" />
+    <link rel="stylesheet" href="css/custom.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Pacote <code>checkpoint</code>
+### Diego Galdino França
+### 2021-04-16
+
+---
+
+
+
+
+
+
+
+
+
+
+## Reprodutibilidade
+
+Muitas das nossas análises no `R` envolvem funções de diferentes pacotes (e.g., `car`, `dplyr`, `ggplot2`).
+
+Pacotes são atualizados constantemente.
+
+Para garantir resultados **reprodutíveis**, é importante rodarmos as análises com as mesmas versões de pacotes de quando os códigos foram escritos.
+
+Com esse objetivo, foi criado o pacote [`checkpoint`](https://cran.r-project.org/web/packages/checkpoint/vignettes/checkpoint.html).
+
+---
+
+## `checkpoint`
+
+Criado pelo Reproducible R Toolkit (RRT), o pacote `checkpoint` possui uma única função: `checkpoint()`.
+
+Essa função instala os pacotes utilizados nos scripts de acordo com alguma data específica (e.g., 2021-01-01).
+
+Isso facilita a reprodução dos códigos e resultados.
+ 
+
+---
+
+## *Checkpoint server*
+
+O [checkpoint server](https://github.com/RevolutionAnalytics/checkpoint-server) armazena cópias diárias do CRAN (i.e., repositório de pacotes do R).
+
+1. Snapshots diários do CRAN são armazenados no *checkpoint server*.
+
+2. O pacote `checkpoint` acessa o *checkpoint server* e busca pelo snapshot do CRAN do dia desejado.
+
+3. Encontrado o snapshot do dia desejado, o `checkpoint` estará pronto para fazer o download dos pacote utilizados nos códigos.
+
+P.S.: O mais antigo snapshot disponível é de `2014-09-17`.
+
+---
+
+&lt;br&gt;
+&lt;br&gt;
+&lt;br&gt;
+
+
+&lt;div class="figure" style="text-align: center"&gt;
+&lt;img src="img/checkpoint-server.png" alt="Checkpoint server" width="100%" /&gt;
+&lt;p class="caption"&gt;Checkpoint server&lt;/p&gt;
+&lt;/div&gt;
+
+
+---
+
+
+## Como funciona o pacote `checkpoint`
+
+`checkpoint` permite instalar pacotes como eles eram em uma data específica.
+
+Utiliza os snapshots armazenados no *checkpoint server*.
+
+A sessão do `R` também é modificada para que os pacotes sejam usados corretamente.
+
+`checkpoint` e *checkpoint server* são como uma **máquina do tempo** para garantir a reprodutibilidade das análises.
+
+---
+
+&lt;br&gt;
+
+
+&lt;div class="figure" style="text-align: center"&gt;
+&lt;img src="./img/checkpoint.png" alt="Checkpoint package" width="100%" /&gt;
+&lt;p class="caption"&gt;Checkpoint package&lt;/p&gt;
+&lt;/div&gt;
+
+
+
+---
+
+class: inverse, center, middle
+
+# Usando o `checkpoint`
+
+---
+
+name: checkpoint
+
+## Função `checkpoint()`
+
+Vamos começar criando um `R project` chamado my-project.
+
+P.S.: Caso você não saiba como criar um projeto, [clique aqui](#projeto).
+
+--
+
+No projeto, crie um novo `R script` com:
+
+- `File` --&gt; `New File` --&gt; `R script`, ou
+
+- `Ctrl(Cmd) + Shift + N`
+
+---
+
+Nesse `R script`:
+
+
+```r
+install.packages("checkpoint")
+library(checkpoint)
+```
+
+Defina uma data (formato "YYYY-MM-DD") e use a função `checkpoint()`:
+
+
+```r
+my_date &lt;- "2020-05-01"
+checkpoint(my_date)
+```
+
+
+--
+
+O `checkpoint` escaneou o `R project`, mas nenhum pacote foi encontrado, uma vez que nenhum pacote foi utilizado.
+
+---
+
+Vamos usar a função `library()` **sem executá-la** para inserirmos dois pacotes no script:
+
+
+
+```r
+library(checkpoint)
+my_date &lt;- "2020-05-01"
+checkpoint(date)
+
+library(dplyr)
+library(ggplot2)
+```
+
+Se executarmos o `chechpoint()` agora, veremos que dois pacotes serão encontrados (i.e., `dplyr` e `ggplot2`) e instalados na versão que eles eram no dia `"2020-05-01"` (i.e., `3.3.0` e `0.8.5`).
+
+---
+
+Além de instalar os pacotes encontrados no `R project`, o `checkpoint` mudou o caminho para a pasta usada pelo `R` para encontrar e carregar os pacotes.
+
+Você pode checar isso por meio da função `.libPaths()`.
+
+Agora, podemos executar a função `library()` e os pacotes serão carregados na versão desejada.
+
+Para interromper o uso do `checkpoint`, *restart* a sessão do R (e.g., `Ctrl + Shift + F10`).
+
+
+---
+
+### Recap
+
+Quando você cria um *checkpoint*, a função `checkpoint()`:
+
+- Cria uma pasta `~/.checkpoint/YYYY-MM-DD` para armazenar os pacotes que serão instalados.
+
+- Escaneia todos os scripts armazenados na pasta do projeto em busca dos pacotes utilizados.
+
+- Instala esses pacotes a partir do snapshot do dia especificado.
+
+- Modifica o caminho para a pasta usada pelo `R` para encontrar e carregar os pacotes.
+
+---
+
+Caso você queira carregar um pacote que ainda não foi instalado, coloque `library(nome_do_pacote)` no script e execute a função `checkpoint()` novamente.
+
+P.S.: Se você executar o `library(nome_do_pacote)` antes de executar a função `checkpoint()`, o `R` não encontrará o pacote.
+
+
+```r
+library(checkpoint)
+my_date &lt;- "2020-05-01"
+checkpoint(my_date)
+
+library(dplyr) # ok
+library(ggplot2) # ok
+library(forcats) # novo pacote, precisa executar checkpoint(my_date) novamente
+```
+
+---
+
+### Trabalhando com vários scripts
+
+Se apenas um `R script` é o suficiente para armazenar todo o seu código, use o `checkpoint` no topo do código:
+
+
+```r
+# data analysis
+
+# checkpoint
+library(checkpoint)
+my_date &lt;- "2020-05-01"
+checkpoint(my_date)
+
+# libraries
+library(ggplot2)
+library(dplyr)
+library(car)
+
+# analysis
+my_data &lt;- mtcars
+summary(my_data)
+my_plot &lt;- my_data %&gt;% ggplot(aes(mpg, hp)) %&gt;% geom_point()
+```
+
+
+---
+
+Se você utilizar diversos `R scripts`, você pode criar um `R script` apenas para o `checkpoint`:
+
+
+```r
+# checkpoint script
+
+library(checkpoint)
+my_date &lt;- "2020-05-01"
+checkpoint(my_date)
+```
+
+**P.S.:** Esse `R script` deve ser executado sempre que você for trabalhar nesse projeto.
+
+Mesmo que nenhum pacote tenha sido adicionado, a função `checkpoint()` mudará o *caminho* para a pasta com as versões apropriadas dos pacotes.
+
+---
+
+### Compartilhando seu código
+
+Compartilhar códigos de análises com colegas ou com o mundo (*open science!*) é uma prática crescente e necessária.
+
+É recomendável compartilhar todo o projeto (i.e., a pasta com todos os arquivos e o `.Rproj`), uma vez que as pessoas terão acesso a todos os arquivos em um só lugar.
+
+Como boas práticas, crie um arquivo **README** com informações sobre o trabalho e aproveite para informar as pessoas sobre o `checkpoint` e como/porque utilizá-lo.
+
+Caso você apenas queira compartilhar um `R script`, lembre-se de inserir as linhas de código para executar o `checkpoint` no início.
+
+---
+
+## Referências
+
+- Para mais informações sobre o pacote `checkpoint`, acesse a [*vignette* do pacote](https://cran.r-project.org/web/packages/checkpoint/vignettes/checkpoint.html).
+
+- Os slides foram criados com:
+
+  - [Rmardown](https://rmarkdown.rstudio.com/);
+  
+  - [xaringan](https://slides.yihui.org/xaringan/), [xaringanthemer](https://pkg.garrickadenbuie.com/xaringanthemer/index.html) e [xaringanExtra](https://pkg.garrickadenbuie.com/xaringanExtra/#/README?id=xaringanextra).
+  
+
+- O pacote [`groundhog`](http://groundhogr.com/) também pode ser uma opção para controlar a versão dos pacotes e aumentar a reprodutibilidade dos códigos.
+
+---
+
+class: inverse, middle, center
+
+# Obrigado!
+
+&lt;br&gt;
+
+✉️ [diegogaldinof@gmail.com](mailto:diegogaldinof@gmail.com)
+
+---
+
+name: projeto
+
+## Criando projeto no RStudio
+
+Criar um projeto no RStudio é fácil e extremamente importante para mantermos nossos códigos organizados.
+
+Um projeto é uma **pasta** que armazenará scripts, bancos de dados, gráficos, objetos e arquivos referentes ao seu trabalho.
+
+Dentro dessa pasta, será criado um arquivo `.Rproj`, que indicará ao R que o ambiente de trabalho deverá ser esse projeto.
+
+Com o projeto aberto no RStudio, tudo o que você salvar (e.g., scripts) será armazenado na pasta do projeto.
+
+---
+
+Para criar um projeto:
+
+
+`File` --&gt; `New Project...` --&gt; `New Directory` --&gt; `New project`
+
+No campo `Directory name`, digite um nome para o seu projeto e clique em `Create New Project`.
+
+Veja o exemplo no próximo slide.
+
+---
+
+
+&lt;img src="img/projeto.gif" width="90%" style="display: block; margin: auto;" /&gt;
+
+
+
+.footnote[
+[Voltar para o slide que você parou](#checkpoint)
+]
+
+
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"slideNumberFormat": "%current%",
+"highlightStyle": "github",
+"highlightLines": true,
+"ratio": "16:9",
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
