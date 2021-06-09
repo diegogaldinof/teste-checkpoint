@@ -1,0 +1,167 @@
+---
+title: "SOP - Package `checkpoint`"
+output: html_document
+---
+
+```{r include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, echo = TRUE,
+                      eval = FALSE, message = FALSE)
+library(emo)
+library(knitr)
+```
+
+
+## Overview
+
+Following the package's creator [description](https://github.com/RevolutionAnalytics/checkpoint):
+
+> The goal of `checkpoint` is to solve the problem of package reproducibility in R. Specifically, `checkpoint` solve the problems that occur when you don’t have the correct versions of R packages. Since packages get updated on CRAN all the time, it can be difficult to recreate an environment where all your packages are consistent with some earlier state. To solve this, `checkpoint` allows you to install packages from a specific snapshot date. In other words, checkpoint makes it possible to install package versions from a specific date in the past, as if you had a CRAN time machine.
+
+To get more information about the package functionality, please read the [package README](https://github.com/RevolutionAnalytics/checkpoint), available on github.
+
+After you have read and understood what is happening behind the scenes, you can follow the step-by-step to run and enjoy the benefits of the package.
+
+
+## Step-by-step
+
+
+### 1. Create a R project
+
+As you learned, `checkpoint` works best with R projects. To create a project in RStudio:
+
+`File -> New Project...`
+
+
+### 2. Open a R script
+
+`File -> New file -> R script` or `Ctrl(Cmd) + Shift + N`
+
+Save this script in your project directory.
+
+
+### 3. Install and load `checkpoint`
+
+#### From CRAN
+
+```{r}
+install.packages("checkpoint")
+library(checkpoint)
+```
+
+#### From github repo (development version)
+
+```{r}
+install.packages("devtools")
+devtools::install_github("RevolutionAnalytics/checkpoint")
+library(checkpoint)
+```
+
+
+### 4. Write "checkpoint("YYYY-MM-DD")", in the top of the script
+
+Remember: **DON'T RUN!**
+
+```{r}
+checkpoint("2021-06-10")
+```
+
+
+### 5. Add some packages
+
+If you run the code, R will load the installed versions of the packages, but this is **not** what we want. So, don't run yet.
+
+Remember: save your script.
+
+```{r}
+library(dplyr)
+library(car)
+library(readxl)
+```
+
+
+### 6. Run the checkpoint
+
+When you run, `checkpoint` will look for `library()`, `require()`, `::` or `:::` commands in the scripts saved in your project directory.
+
+If it finds something, the download and installation will start.
+
+
+```{r}
+checkpoint("2021-06-10") # Run
+```
+
+
+### 7. Check the .libPaths()
+
+To see from where R is loading the packages now, run:
+
+```{r}
+.libPaths()
+```
+
+You will find a new folder `~/.checkpoint` in the top.
+
+
+### 8. Now, you can work!
+
+```{r}
+install.packages("checkpoint")
+library(checkpoint)
+
+# checkpoint
+checkpoint("2021-06-10")
+
+# packages
+library(dplyr)
+library(car)
+library(readxl)
+
+# analysis
+my_data <- readxl::read_excel("my-data.xlsx")
+summary(my_data)
+```
+
+
+
+### 9. Oh! I forgot some packages `r emo::ji("person_facepalming")`
+
+No worries! You can insert new packages, but remember:
+
+1. write `library(<package>)` (don't run)
+
+2. save the script
+
+3. run `checkpoint`
+
+4. load the package
+
+
+```{r}
+install.packages("checkpoint")
+library(checkpoint)
+
+# checkpoint
+checkpoint("2021-06-10") # 3. run
+
+# packages
+library(dplyr)
+library(car)
+library(readxl)
+
+# forgotten packages
+library(ggplot2) # 1. write; 2. save; 4. run
+library(broom)
+
+# analysis
+my_data <- readxl::read_excel("my-data.xlsx")
+summary(my_data)
+```
+
+
+### 10. No more checkpoints today
+
+If you want to stop `checkpoint`, you can:
+
+1. run `uncheckpoint()`
+
+2. restart R (`Ctrl(Cmd) + Shift + F10`)
