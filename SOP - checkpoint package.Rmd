@@ -162,6 +162,6 @@ summary(my_data)
 
 If you want to stop `checkpoint`, you can:
 
-1. run `uncheckpoint()`
+- run `uncheckpoint()`
 
-2. restart R (`Ctrl(Cmd) + Shift + F10`)
+- restart R (`Ctrl(Cmd) + Shift + F10`)
